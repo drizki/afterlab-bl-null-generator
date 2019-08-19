@@ -24,23 +24,27 @@ from bpy.types import (Panel,
 
 
 class EmptyGeneratorSettings(PropertyGroup):
-
-    link_to_selected = BoolProperty(
-        name="Link",
-        description="Link to selected object(s)",
-        default=False
-    )
     
-    parent_to_selected = BoolProperty(
+    
+    
+    parent = EnumProperty(
+                    # (identifier, name, descripion)
+        items = [
+                    ('0','None', 'Don\'t parent empty'),
+                    ('1','Object', 'Parent empty to object'),
+                    ('2','Empty', 'Parent object to empty'),
+                ],
         name="Parent",
-        description="Parent to selected object(s)",
-        default=False
-    )
+        default="0",
+        )
+    
+    
+    
     
     copy_location = BoolProperty(
         name="Copy location",
         description="Copy location from selected object(s)",
-        default=False
+        default=True
     )
     
     count = IntProperty(
@@ -68,8 +72,7 @@ class GeneratorPanel(Panel):
         scene = context.scene
         settings = scene.settings
         
-        layout.prop(settings, "link_to_selected", "Link")
-        layout.prop(settings, "parent_to_selected", "Parent")
+        layout.prop(settings, "parent", "Parent")
         layout.prop(settings, "copy_location", "Copy location")
         layout.prop(settings, "count", text="Count")
         self.layout.operator("object.generate_empty_plain_axis", icon="OUTLINER_OB_EMPTY", text="Generate")
@@ -88,18 +91,26 @@ class GenerateEmptyPlainAxis(Operator):
         
         for x in range(0, settings.count):
             for obj in context.selected_objects:
-                if (settings.link_to_selected == True):
-                    o = bpy.data.objects.new('empty', obj.data)
-                else:
-                    o = bpy.data.objects.new('empty', None)
-                    
-                if (settings.parent_to_selected == True):
-                    o.parent = obj
+                
+                o = bpy.data.objects.new('empty', None)
+                
+                scene.objects.link(o)
                     
                 if (settings.copy_location == True):
                     o.location = obj.location
                 
-                scene.objects.link(o)
+                # Object as parent
+                if (settings.parent == "1"):
+                    o.parent = obj
+                    o.matrix_parent_inverse = obj.matrix_world.inverted()
+                    scene.update()
+                    
+                # Empty as parent
+                if (settings.parent == "2"):
+                    obj.parent = o
+                    obj.matrix_local = o.matrix_world.inverted()
+                    scene.update()
+                
         
         
             
