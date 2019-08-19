@@ -34,19 +34,17 @@ class EmptyGeneratorSettings(PropertyGroup):
         name="Parent",
         default="0",
         )
+        
+    prefix = StringProperty(
+        name="Prefix",
+        description="Empty prefix",
+        default=""
+    )
 
     copy_location = BoolProperty(
         name="Copy location",
         description="Copy location from selected object(s)",
         default=True
-    )
-    
-    count = IntProperty(
-        name="Count",
-        description="Number of empty object to generate",
-        default=1,
-        min=1,
-        max=1000
     )
         
 
@@ -63,8 +61,8 @@ class EmptyGeneratorPanel(Panel):
         settings = scene.settings
         
         layout.prop(settings, "parent", "Parent")
+        layout.prop(settings, "prefix", "Prefix")
         layout.prop(settings, "copy_location", "Copy location")
-        layout.prop(settings, "count", text="Count")
         self.layout.operator("object.generate_empty_plain_axis", icon="OUTLINER_OB_EMPTY", text="Generate")
 
 class GenerateEmptyPlainAxis(Operator):
@@ -77,25 +75,28 @@ class GenerateEmptyPlainAxis(Operator):
         scene = context.scene
         settings = scene.settings
         
-        for x in range(0, settings.count):
-            for obj in context.selected_objects:
-                o = bpy.data.objects.new('empty', None)
-                scene.objects.link(o)
-                    
-                if (settings.copy_location == True):
-                    o.location = obj.location
+        for obj in context.selected_objects:
+            if (settings.prefix != ""):
+                o = bpy.data.objects.new(settings.prefix +'_Empty', None) 
+            else:
+                o = bpy.data.objects.new(obj.name +'_Empty', None)
+            
+            scene.objects.link(o)
                 
-                # Object as parent
-                if (settings.parent == "1"):
-                    o.parent = obj
-                    o.matrix_parent_inverse = obj.matrix_world.inverted()
-                    scene.update()
-                    
-                # Empty as parent
-                if (settings.parent == "2"):
-                    obj.parent = o
-                    obj.matrix_local = o.matrix_world.inverted()
-                    scene.update()
+            if (settings.copy_location == True):
+                o.location = obj.location
+            
+            # Object as parent
+            if (settings.parent == "1"):
+                o.parent = obj
+                o.matrix_parent_inverse = obj.matrix_world.inverted()
+                scene.update()
+                
+            # Empty as parent
+            if (settings.parent == "2"):
+                obj.parent = o
+                obj.matrix_local = o.matrix_world.inverted()
+                scene.update()
                     
         return {'FINISHED'}
 
