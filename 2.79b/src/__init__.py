@@ -24,9 +24,6 @@ from bpy.types import (Panel,
 
 
 class EmptyGeneratorSettings(PropertyGroup):
-    
-    
-    
     parent = EnumProperty(
                     # (identifier, name, descripion)
         items = [
@@ -37,10 +34,7 @@ class EmptyGeneratorSettings(PropertyGroup):
         name="Parent",
         default="0",
         )
-    
-    
-    
-    
+
     copy_location = BoolProperty(
         name="Copy location",
         description="Copy location from selected object(s)",
@@ -56,17 +50,13 @@ class EmptyGeneratorSettings(PropertyGroup):
     )
         
 
-
-class GeneratorPanel(Panel):
-    
-    bl_idname = "null_generator_panel"
+class EmptyGeneratorPanel(Panel):
+    bl_idname = "empyy_generator_panel"
     bl_label = "Empty Generator"
     bl_space_type = "VIEW_3D"
     bl_region_type = "TOOLS"
     bl_category = "Tools"
-    
-    
-    
+
     def draw(self, context):
         layout = self.layout
         scene = context.scene
@@ -77,7 +67,6 @@ class GeneratorPanel(Panel):
         layout.prop(settings, "count", text="Count")
         self.layout.operator("object.generate_empty_plain_axis", icon="OUTLINER_OB_EMPTY", text="Generate")
 
-
 class GenerateEmptyPlainAxis(Operator):
     """Create empty for selected object(s)"""
     bl_idname = "object.generate_empty_plain_axis"
@@ -85,15 +74,12 @@ class GenerateEmptyPlainAxis(Operator):
     bl_options = {'REGISTER', 'UNDO'}
 
     def execute(self, context):
-        
         scene = context.scene
         settings = scene.settings
         
         for x in range(0, settings.count):
             for obj in context.selected_objects:
-                
                 o = bpy.data.objects.new('empty', None)
-                
                 scene.objects.link(o)
                     
                 if (settings.copy_location == True):
@@ -110,12 +96,8 @@ class GenerateEmptyPlainAxis(Operator):
                     obj.parent = o
                     obj.matrix_local = o.matrix_world.inverted()
                     scene.update()
-                
-        
-        
-            
+                    
         return {'FINISHED'}
-
 
 def register():
     bpy.utils.register_module(__name__)
