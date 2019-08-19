@@ -61,7 +61,7 @@ def register():
 
 
 def unregister():
-    bpy.utils.unregister_class(HelloWorldPanel)
+    bpy.utils.unregister_class(PANEL_PT_material_tools)
     bpy.utils.unregister_class(MATERIAL_OT_reset_metallic_value)
 
 if __name__ == "__main__":
