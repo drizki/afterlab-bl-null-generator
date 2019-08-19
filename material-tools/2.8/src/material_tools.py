@@ -43,11 +43,9 @@ class MATERIAL_OT_reset_metallic_value(Operator):
         replaced = 0
 
         for obj in selected:
-            mats = obj.data.materials
-            for mat in mats:
-                nodes = mat.node_tree
-                mat.metallic = 0
-                shadder = mat.node_tree.nodes['Principled BSDF']
+            materials = obj.data.materials
+            for material in materials:
+                shadder = material.node_tree.nodes['Principled BSDF']
                 shadder.inputs[4].default_value = 0
                 replaced += 1
         message = "Replaced " + str(replaced) + " values!"
