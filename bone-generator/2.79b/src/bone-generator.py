@@ -43,7 +43,6 @@ class UIPanel(Panel):
     def draw(self, context):
         layout = self.layout
         scene = context.scene
-        # settings = scene.bone_generator_settings
         
         self.layout.operator("object.generate_bone_action", icon="OUTLINER_OB_ARMATURE", text="Generate")
 
@@ -56,36 +55,71 @@ class GenerateBoneAction(Operator):
     def execute(self, context):
         scene = context.scene
         ops = bpy.ops
-        # settings = scene.bone_generator_settings
         
         selected = context.selected_objects
+        
         ops.object.armature_add()
         
+        scene.cursor_location = (0.0, 0.0, 0.0)
+        
+        bpy.ops.view3d.cursor3d('INVOKE_DEFAULT')
         
         armature = context.active_object
         
-        
         bpy.ops.object.mode_set(mode='EDIT')
         
-        edit = armature.data.edit_bones
+        armature.data.bones['Bone'].name = 'root'
         
-        for bone in edit:
-            edit.remove(bone)
+        
+        for obj in selected:
             
-            for obj in selected:
-                edit.new(obj.name + '_bone')
-                
-                obj.parent = armature
+            armature.select = True
+            
+            scene.objects.active = armature
+            
+            bpy.ops.object.mode_set(mode='EDIT')
+            
+            edit_bones = armature.data.edit_bones
+            
+            obj_bone = edit_bones.new(obj.name + '_bone')
+            
+            obj_bone.head = (obj.location.x, obj.location.y, obj.location.z)
+            
+            obj_bone.tail = (obj.location.x, obj.location.y, obj.location.z + 1.0)
+            
+            armature.data.edit_bones.active = armature.data.edit_bones[obj_bone.name]
+            
+            obj_bone.parent = edit_bones['root']
+            
+            bpy.ops.object.mode_set(mode='OBJECT')
+            
+            bpy.ops.object.select_all(action='DESELECT')
+            
+            obj.select = True
+            
+            armature.select = True
+            
+            scene.objects.active = armature
+            
+            bpy.ops.object.parent_set(type="BONE", keep_transform=True)
+        
+        
+        
+        for obj in selected:
+            
+            scene.objects.active = obj
+            
+            
+            
+            # print(edit_bones)
                 
         return {'FINISHED'}
 
 def register():
     bpy.utils.register_module(__name__)
-    # bpy.types.Scene.bone_generator_settings = PointerProperty(type=BoneGeneratorSettings)
-
+    
 def unregister():
     bpy.utils.unregister_module(__name__)
-    # del bpy.types.Scene.bone_generator_settings
     
 if __name__ == "__main__":
     register()
